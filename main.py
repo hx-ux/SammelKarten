@@ -92,7 +92,7 @@ for c in range(countImg):
 
     try:
         img = Image.open("temp/"+fName).convert("RGB")
-        if(drawInfo):
+        if drawInfo:
             width, height = img.size
             font_size = 20
             font = ImageFont.truetype(
@@ -125,7 +125,7 @@ for c in range(countImg):
         print("error at image index: "+str(c+1))
 # END creation loop
 
-if(logToJson):
+if logToJson:
     dumpToJson(jsonList)
 
 print("finished! rendered "+str(countImgRender)+" pictures")
