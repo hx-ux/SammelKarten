@@ -1,14 +1,12 @@
 import gmic
 import json
-from random import randrange,random
+from random import randrange, random
 import imagehash
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 import math
-
-from scipy import rand
-
+import time
 
 # Be shure to delte all the images in the folder 'temp' first !
 # input dimensions should be 600x600
@@ -16,14 +14,15 @@ inImg = "blury_tree.jpg"
 # how many filter should be appended ?
 # your value times 5 , 2 means 5*2=10
 # the highest value in this case can be 10, the lowest 1
-interationScale = 4
+interationScale = 2
 # how many images should be created ?
 countImg = 10
-#set your seed
+# set your seed
 # JSON log ?
 logToJson = False
 # Draws the cards border with informations
 drawInfo = True
+drawInfoText = True
 
 
 # Filter used
@@ -43,16 +42,17 @@ pScanLines = " fx_marble 4.74,1,0,0,0.4,0.054,7.24,1.1,0,100"
 pSponge = " fx_sponge 9,0,0,50,50"
 pKorb = " weave 14,50.5,0,0.5,0,0,0,0,0"
 pWarp = " fx_warp_by_intensity 1.104,-0.708,128,128,0,0,3,0,0,50,50"
-
 pFractal = " fractalize 0.8"
 pPloy = " fx_polygonize 2000,85.7,10,10,10,0,0,0,255,0,50,50"
 pBitCrush = " fx_8bits 25,800,16,0,50,50"
-pRTiles=" fx_shift_tiles 10,10,10,1"
+pRTiles = " fx_shift_tiles 10,10,10,1"
+pVigentte = " fx_vignette 70,70,95,0,0,0,255"
+pBWCircle = " fx_shapes 1,16,10,2,5,90,0,0,1,1,0"
 
-pVigentte=" fx_vignette 70,70,95,0,0,0,255"
+pTunnel = " fx_tunnel 4,80,50,50,0.2,0"
 filterList = [pDots, pWhearl, pBlurAngular, pRodilus, pBW, pSegment,
-              pTwirl, pDirty, pPixelSort, pOverlayBC, pHope2020, pScanLines, pSponge, pKorb, pBitCrush, pWarp, pFractal, pPloy,pRTiles,
-              pVigentte]
+              pTwirl, pDirty, pPixelSort, pOverlayBC, pHope2020, pScanLines, pSponge, pKorb, pBitCrush, pWarp, pFractal, pPloy, pRTiles,
+              pVigentte, pBWCircle, pTunnel]
 
 
 # returns the color for the background according to the rarerity of the image
@@ -77,6 +77,7 @@ def dumpToJson(list):
     jsonFile.close()
 
 
+tStartAll = time.time()
 print("Starting loop, this could take a long time ")
 # START creation loop
 for c in range(countImg):
@@ -87,8 +88,10 @@ for c in range(countImg):
     for x in range(fCount):
         fChoice = fChoice + str(filterList[randrange(0, len(filterList))])
 
-    fileName=''.join(str(c+1)+".png")
-    print("starting image no: "+fileName+" \n count filter"+str(fCount)+fChoice)
+    fileName = ''.join(str(c+1)+".png")
+    tStartSingle = time.time()
+    print("starting image no: "+fileName +
+          " \n count filter : "+str(fCount))
     gmic.run(inImg+fChoice + " output "+"temp/"+fileName)
 
     try:
@@ -97,7 +100,7 @@ for c in range(countImg):
             width, height = img.size
             font_size = 20
             font = ImageFont.truetype(
-            "usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf", font_size, encoding="unic")
+                "usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf", font_size, encoding="unic")
 
             imgHash = imagehash.whash(img)
             fillCol = rareColor(rare)
@@ -107,26 +110,33 @@ for c in range(countImg):
             draw.line((width, 0, width, height), fill=fillCol, width=100)
             draw.rectangle(((0, 0), (width, 50)), fill=fillCol)
             draw.rectangle(((0, height), (width, height-150)), fill=fillCol)
+            if(drawInfoText):
+                draw.text((40, height-120), "Number: " +
+                          str(c+1), font=font, fill='white')
+                draw.text((40, height-100), "Rarity: " +
+                          str(rare), font=font, fill='white')
+                draw.text((40, height-80), "Hash: " +
+                          str(imgHash), font=font, fill='white')
+                draw.text((40, height-60), "Filter: " +
+                          str(fCount), font=font, fill='white')
 
-            draw.text((40, height-120), "Number: " +
-                  str(c+1), font=font, fill='white')
-            draw.text((40, height-100), "Rarity: " +
-                  str(rare), font=font, fill='white')
-            draw.text((40, height-80), "Hash: "+str(imgHash), font=font, fill='white')
-            draw.text((40, height-60), "Filter: " +
-                  str(fCount), font=font, fill='white')
-        
         img.save("render/"+fileName, quality=100)
         if(logToJson):
             jsonList.append({"number": c+1, "fName": fileName,
                              "iterations": rare, "effects": fChoice, "rarity": rare, "hash": str(imgHash)})
         countImgRender += 1
-        print("\n succsess at image index: "+str(c+1)+"\n")
+        outText = "\n succsess at image index: "+str(c+1)
     except IOError:
-        print(" \n error at image index: "+str(c+1)+"\n")
+        outText = "\n error at image index: "+str(c+1)
+    tEndSingle = time.time()
+    print(outText+" elapsed time: "+str(round(tEndSingle-tStartSingle))+" seconds")
+
 # END creation loop
 
 if logToJson:
     dumpToJson(jsonList)
 
-print("\n finished! rendered "+str(countImgRender)+" pictures")
+tEndAll = time.time()
+
+print("\n finished! rendered "+str(countImgRender) +
+      " pictures in " + str(round(tEndAll-tStartAll))+" seconds")
