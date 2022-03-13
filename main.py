@@ -1,3 +1,4 @@
+import glob
 import gmic
 import json
 from random import randrange, random
@@ -7,22 +8,39 @@ from PIL import ImageFont
 from PIL import ImageDraw
 import math
 import time
+import os
 
-# Be shure to delte all the images in the folder 'temp' first !
+
+folderPath={
+    "GIF":'./gif',
+    "TEMP":'./temp',
+    "RENDER":'./render'
+}
+
 # input dimensions should be 600x600
-inImg = "blury_tree.jpg"
+sourceImg = "blury_tree.jpg"
 # how many filter should be appended ?
 # your value times 5 , 2 means 5*2=10
 # the highest value in this case can be 10, the lowest 1
-interationScale = 2
+interationScale = 1
 # how many images should be created ?
-countImg = 10
+countImg = 20
 # set your seed
 # JSON log ?
 logToJson = False
 # Draws the cards border with informations
 drawInfo = True
 drawInfoText = True
+#if true, the previous image (with filters applied) will be rendered 
+# 1.png ==> FILTERS ==> 2.png
+#if false, the src image will be rendered with filters
+# src.png ==> FILTERS ==> 1.png
+generateRecursive=True
+#creates a gif with all images in the selected folder
+createGif=True
+GifInputPath=folderPath["TEMP"]
+
+
 
 
 # Filter used
@@ -48,11 +66,29 @@ pBitCrush = " fx_8bits 25,800,16,0,50,50"
 pRTiles = " fx_shift_tiles 10,10,10,1"
 pVigentte = " fx_vignette 70,70,95,0,0,0,255"
 pBWCircle = " fx_shapes 1,16,10,2,5,90,0,0,1,1,0"
-
 pTunnel = " fx_tunnel 4,80,50,50,0.2,0"
+
 filterList = [pDots, pWhearl, pBlurAngular, pRodilus, pBW, pSegment,
               pTwirl, pDirty, pPixelSort, pOverlayBC, pHope2020, pScanLines, pSponge, pKorb, pBitCrush, pWarp, pFractal, pPloy, pRTiles,
               pVigentte, pBWCircle, pTunnel]
+
+
+def clearFolder(path):
+    for file in os.listdir(path):
+        if file.endswith('.png'):
+            filePath=path+'/'+file
+            if os.path.exists(filePath):
+                os.remove(filePath)
+
+
+
+clearFolder(folderPath["RENDER"])
+clearFolder(folderPath["TEMP"])
+print("cleared folders")
+
+
+
+
 
 
 # returns the color for the background according to the rarerity of the image
@@ -67,8 +103,19 @@ def rareColor(i):
     return switcher.get(i, "black")
 
 
-countImgRender = 0
+countImgRender = 1
 jsonList = []
+
+def createGIF(path):
+    
+    print("creating gif")
+    # frames=Image.open(sourceImg)
+    frames= [Image.open(f) for f in sorted(glob.glob(f"{path}/*.png"))]
+    
+    frame_one=Image.open(sourceImg)
+    frame_one.save(fp='./gif/render.gif', format='GIF', append_images=frames,
+         save_all=True, duration=200, loop=0)
+    print("finished gif")
 
 
 def dumpToJson(list):
@@ -80,7 +127,12 @@ def dumpToJson(list):
 tStartAll = time.time()
 print("Starting loop, this could take a long time ")
 # START creation loop
+
+def gmicCreate(inImg, fileName, fChoice):
+    gmic.run(inImg+fChoice + " output "+"temp/"+fileName)
+
 for c in range(countImg):
+
     fileName = ""
     fChoice = ""
     fCount = randrange(1, 5*interationScale, 1)
@@ -92,7 +144,17 @@ for c in range(countImg):
     tStartSingle = time.time()
     print("starting image no: "+fileName +
           " \n count filter : "+str(fCount))
-    gmic.run(inImg+fChoice + " output "+"temp/"+fileName)
+    im=sourceImg
+
+    if(generateRecursive):
+        if(countImgRender >2):
+            prevIm='./temp/'+str(countImgRender-1)+".png"
+            if os.path.exists(prevIm):
+                im=prevIm
+
+         
+    print("src-file"+im)
+    gmicCreate(im, fileName, fChoice)
 
     try:
         img = Image.open("temp/"+fileName).convert("RGB")
@@ -120,6 +182,8 @@ for c in range(countImg):
                 draw.text((40, height-60), "Filter: " +
                           str(fCount), font=font, fill='white')
 
+       
+        img=img.resize((600,600),Image.NEAREST)
         img.save("render/"+fileName, quality=100)
         if(logToJson):
             jsonList.append({"number": c+1, "fName": fileName,
@@ -131,12 +195,16 @@ for c in range(countImg):
     tEndSingle = time.time()
     print(outText+" elapsed time: "+str(round(tEndSingle-tStartSingle))+" seconds")
 
-# END creation loop
+
+  
 
 if logToJson:
     dumpToJson(jsonList)
 
 tEndAll = time.time()
 
-print("\n finished! rendered "+str(countImgRender) +
+print("\n finished! rendered "+str(countImgRender-1) +
       " pictures in " + str(round(tEndAll-tStartAll))+" seconds")
+
+if(createGif):
+    createGIF(GifInputPath)
