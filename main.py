@@ -1,7 +1,8 @@
 import glob
-import gmic
+import subprocess
 import json
 from random import randrange, random
+from click import command
 import imagehash
 from PIL import Image
 from PIL import ImageFont
@@ -10,37 +11,39 @@ import math
 import time
 import os
 
+absPath = os.getcwd()
+gmicExePath = r"C:\Users\Jakob\Desktop\GMIC_CLI\gmic.exe"
 
-folderPath={
-    "GIF":'./gif',
-    "TEMP":'./temp',
-    "RENDER":'./render'
+
+folderPath = {
+    "GIF": './gif',
+    "TEMP": './temp',
+    "RENDER": './render'
 }
+
 
 # input dimensions should be 600x600
 sourceImg = "blury_tree.jpg"
 # how many filter should be appended ?
 # your value times 5 , 2 means 5*2=10
 # the highest value in this case can be 10, the lowest 1
-interationScale = 1
+interationScale = 10
 # how many images should be created ?
-countImg = 20
+countImg = 2
 # set your seed
 # JSON log ?
 logToJson = False
 # Draws the cards border with informations
 drawInfo = True
 drawInfoText = True
-#if true, the previous image (with filters applied) will be rendered 
+# if true, the previous image (with filters applied) will be rendered
 # 1.png ==> FILTERS ==> 2.png
-#if false, the src image will be rendered with filters
+# if false, the src image will be rendered with filters
 # src.png ==> FILTERS ==> 1.png
-generateRecursive=True
-#creates a gif with all images in the selected folder
-createGif=True
-GifInputPath=folderPath["TEMP"]
-
-
+generateRecursive = True
+# creates a gif with all images in the selected folder
+createGif = False
+GifInputPath = folderPath["TEMP"]
 
 
 # Filter used
@@ -76,19 +79,14 @@ filterList = [pDots, pWhearl, pBlurAngular, pRodilus, pBW, pSegment,
 def clearFolder(path):
     for file in os.listdir(path):
         if file.endswith('.png'):
-            filePath=path+'/'+file
+            filePath = path+'/'+file
             if os.path.exists(filePath):
                 os.remove(filePath)
-
 
 
 clearFolder(folderPath["RENDER"])
 clearFolder(folderPath["TEMP"])
 print("cleared folders")
-
-
-
-
 
 
 # returns the color for the background according to the rarerity of the image
@@ -106,15 +104,16 @@ def rareColor(i):
 countImgRender = 1
 jsonList = []
 
+
 def createGIF(path):
-    
+
     print("creating gif")
     # frames=Image.open(sourceImg)
-    frames= [Image.open(f) for f in sorted(glob.glob(f"{path}/*.png"))]
-    
-    frame_one=Image.open(sourceImg)
+    frames = [Image.open(f) for f in sorted(glob.glob(f"{path}/*.png"))]
+
+    frame_one = Image.open(sourceImg)
     frame_one.save(fp='./gif/render.gif', format='GIF', append_images=frames,
-         save_all=True, duration=200, loop=0)
+                   save_all=True, duration=200, loop=0)
     print("finished gif")
 
 
@@ -128,8 +127,15 @@ tStartAll = time.time()
 print("Starting loop, this could take a long time ")
 # START creation loop
 
+
 def gmicCreate(inImg, fileName, fChoice):
-    gmic.run(inImg+fChoice + " output "+"temp/"+fileName)
+
+    infIle = " input "+absPath+"/"+inImg
+    outFile = " output "+absPath + "/temp/"+fileName
+    # command="-input "+absPath+'/'+inImg+fChoice + "-output "+"temp/"+fileName
+    p = os.popen(str(gmicExePath)+infIle+fChoice + outFile)
+    p.close()
+
 
 for c in range(countImg):
 
@@ -144,25 +150,25 @@ for c in range(countImg):
     tStartSingle = time.time()
     print("starting image no: "+fileName +
           " \n count filter : "+str(fCount))
-    im=sourceImg
+    im = sourceImg
 
     if(generateRecursive):
-        if(countImgRender >2):
-            prevIm='./temp/'+str(countImgRender-1)+".png"
+        if(countImgRender > 2):
+            prevIm = './temp/'+str(countImgRender-1)+".png"
             if os.path.exists(prevIm):
-                im=prevIm
+                im = prevIm
 
-         
     print("src-file"+im)
     gmicCreate(im, fileName, fChoice)
 
     try:
         img = Image.open("temp/"+fileName).convert("RGB")
         if drawInfo:
+            img = img.resize((600, 600), Image.NEAREST)
             width, height = img.size
             font_size = 20
-            font = ImageFont.truetype(
-                "usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf", font_size, encoding="unic")
+            # font = ImageFont.truetype(
+            #     "usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf", font_size, encoding="unic")
 
             imgHash = imagehash.whash(img)
             fillCol = rareColor(rare)
@@ -174,16 +180,15 @@ for c in range(countImg):
             draw.rectangle(((0, height), (width, height-150)), fill=fillCol)
             if(drawInfoText):
                 draw.text((40, height-120), "Number: " +
-                          str(c+1), font=font, fill='white')
+                          str(c+1),  fill='white')
                 draw.text((40, height-100), "Rarity: " +
-                          str(rare), font=font, fill='white')
+                          str(rare),  fill='white')
                 draw.text((40, height-80), "Hash: " +
-                          str(imgHash), font=font, fill='white')
+                          str(imgHash), fill='white')
                 draw.text((40, height-60), "Filter: " +
-                          str(fCount), font=font, fill='white')
+                          str(fCount),  fill='white')
 
-       
-        img=img.resize((600,600),Image.NEAREST)
+        img = img.resize((600, 600), Image.NEAREST)
         img.save("render/"+fileName, quality=100)
         if(logToJson):
             jsonList.append({"number": c+1, "fName": fileName,
@@ -195,8 +200,6 @@ for c in range(countImg):
     tEndSingle = time.time()
     print(outText+" elapsed time: "+str(round(tEndSingle-tStartSingle))+" seconds")
 
-
-  
 
 if logToJson:
     dumpToJson(jsonList)
