@@ -1,46 +1,45 @@
 import glob
-import gmic
 import json
 from random import randrange, random
 import imagehash
-from PIL import Image
-from PIL import ImageFont
-from PIL import ImageDraw
+from PIL import Image , ImageFont , ImageDraw
 import math
 import time
 import os
 
 
-folderPath={
-    "GIF":'./gif',
-    "TEMP":'./temp',
-    "RENDER":'./render'
+folderPath = {
+    "GIF": './gif',
+    "TEMP": './temp',
+    "RENDER": './render'
 }
 
 # input dimensions should be 600x600
 sourceImg = "blury_tree.jpg"
+
 # how many filter should be appended ?
 # your value times 5 , 2 means 5*2=10
 # the highest value in this case can be 10, the lowest 1
-interationScale = 1
+iterationScale = 1
+
 # how many images should be created ?
 countImg = 20
-# set your seed
+
+
 # JSON log ?
 logToJson = False
+
 # Draws the cards border with informations
 drawInfo = True
 drawInfoText = True
-#if true, the previous image (with filters applied) will be rendered 
+# if true, the previous image (with filters applied) will be rendered
 # 1.png ==> FILTERS ==> 2.png
-#if false, the src image will be rendered with filters
+# if false, the src image will be rendered with filters
 # src.png ==> FILTERS ==> 1.png
-generateRecursive=True
-#creates a gif with all images in the selected folder
-createGif=True
-GifInputPath=folderPath["TEMP"]
-
-
+generateRecursive = True
+# creates a gif with all images in the selected folder
+createGif = False
+GifInputPath = folderPath["TEMP"]
 
 
 # Filter used
@@ -76,19 +75,14 @@ filterList = [pDots, pWhearl, pBlurAngular, pRodilus, pBW, pSegment,
 def clearFolder(path):
     for file in os.listdir(path):
         if file.endswith('.png'):
-            filePath=path+'/'+file
+            filePath = path+'/'+file
             if os.path.exists(filePath):
                 os.remove(filePath)
-
 
 
 clearFolder(folderPath["RENDER"])
 clearFolder(folderPath["TEMP"])
 print("cleared folders")
-
-
-
-
 
 
 # returns the color for the background according to the rarerity of the image
@@ -103,18 +97,16 @@ def rareColor(i):
     return switcher.get(i, "black")
 
 
-countImgRender = 1
 jsonList = []
 
+
 def createGIF(path):
-    
+
     print("creating gif")
-    # frames=Image.open(sourceImg)
-    frames= [Image.open(f) for f in sorted(glob.glob(f"{path}/*.png"))]
-    
-    frame_one=Image.open(sourceImg)
+    frames = [Image.open(f) for f in sorted(glob.glob(f"{path}/*.png"))]
+    frame_one = Image.open(sourceImg)
     frame_one.save(fp='./gif/render.gif', format='GIF', append_images=frames,
-         save_all=True, duration=200, loop=0)
+                   save_all=True, duration=200, loop=0)
     print("finished gif")
 
 
@@ -128,44 +120,56 @@ tStartAll = time.time()
 print("Starting loop, this could take a long time ")
 # START creation loop
 
-def gmicCreate(inImg, fileName, fChoice):
-    gmic.run(inImg+fChoice + " output "+"temp/"+fileName)
 
-for c in range(countImg):
+def gmicCreate(inImg, fileName, filter):
+    os.system(
+        "gmic {ing} {fil} output temp/{outg}".format(ing=inImg, fil=filter, outg=fileName))
+
+
+countImgRender = 1
+
+for images in range(countImg):
 
     fileName = ""
-    fChoice = ""
-    fCount = randrange(1, 5*interationScale, 1)
-    rare = math.ceil(fCount/interationScale)
-    for x in range(fCount):
-        fChoice = fChoice + str(filterList[randrange(0, len(filterList))])
+    filterArray = ""
+    filterCount = randrange(1, 5*iterationScale, 1)
+    rarity = math.ceil(filterCount/iterationScale)
 
-    fileName = ''.join(str(c+1)+".png")
+    for x in range(filterCount):
+        filterArray = filterArray + str(filterList[randrange(0, len(filterList))])
+
+    fileName = ''.join(str(images+1)+".png")
+
     tStartSingle = time.time()
-    print("starting image no: "+fileName +
-          " \n count filter : "+str(fCount))
-    im=sourceImg
+    
+    imageToRender = sourceImg
 
     if(generateRecursive):
-        if(countImgRender >2):
-            prevIm='./temp/'+str(countImgRender-1)+".png"
-            if os.path.exists(prevIm):
-                im=prevIm
+        print("rekursive")
+        if(countImgRender > 2):
+            prevImage = './temp/'+str(countImgRender-1)+".png"
+            if os.path.exists(prevImage):
+                imageToRender = prevImage
 
-         
-    print("src-file"+im)
-    gmicCreate(im, fileName, fChoice)
+
+    print("starting image no: "+fileName +
+          " \n count filter : "+str(filterCount)+
+          "\n src image" + imageToRender)
+    
+    gmicCreate(imageToRender, fileName, filterArray)
+    countImgRender=countImgRender +1
 
     try:
-        img = Image.open("temp/"+fileName).convert("RGB")
+        img = Image.open("./temp/"+fileName).convert("RGB")
         if drawInfo:
             width, height = img.size
             font_size = 20
+            # TODO Does not work in docker container
             font = ImageFont.truetype(
                 "usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf", font_size, encoding="unic")
 
             imgHash = imagehash.whash(img)
-            fillCol = rareColor(rare)
+            fillCol = rareColor(rarity)
             draw = ImageDraw.Draw(img)
 
             draw.line((0, 0, 0, height), fill=fillCol, width=100)
@@ -174,29 +178,26 @@ for c in range(countImg):
             draw.rectangle(((0, height), (width, height-150)), fill=fillCol)
             if(drawInfoText):
                 draw.text((40, height-120), "Number: " +
-                          str(c+1), font=font, fill='white')
+                          str(images+1), font=font, fill='white')
                 draw.text((40, height-100), "Rarity: " +
-                          str(rare), font=font, fill='white')
+                          str(rarity), font=font, fill='white')
                 draw.text((40, height-80), "Hash: " +
                           str(imgHash), font=font, fill='white')
                 draw.text((40, height-60), "Filter: " +
-                          str(fCount), font=font, fill='white')
+                          str(filterCount), font=font, fill='white')
 
-       
-        img=img.resize((600,600),Image.NEAREST)
+        img = img.resize((600, 600), Image.NEAREST)
         img.save("render/"+fileName, quality=100)
         if(logToJson):
-            jsonList.append({"number": c+1, "fName": fileName,
-                             "iterations": rare, "effects": fChoice, "rarity": rare, "hash": str(imgHash)})
+            jsonList.append({"number": images+1, "fName": fileName,
+                             "iterations": rarity, "effects": filterArray, "rarity": rarity, "hash": str(imgHash)})
         countImgRender += 1
-        outText = "\n succsess at image index: "+str(c+1)
+        outText = "\n succsess at image index: {img} ".format(img=str(images+1))
     except IOError:
-        outText = "\n error at image index: "+str(c+1)
+        outText = "\n error at image index: {img}".format(img=str(images+1))
     tEndSingle = time.time()
-    print(outText+" elapsed time: "+str(round(tEndSingle-tStartSingle))+" seconds")
+    print(outText+" elapsed time: {time} seconds".format(time=str(round(tEndSingle-tStartSingle))))
 
-
-  
 
 if logToJson:
     dumpToJson(jsonList)
