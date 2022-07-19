@@ -3,3 +3,4 @@ test.py
 *.deb
 *.gif
 font/Roboto-Black.ttf
+gif/render.gif
