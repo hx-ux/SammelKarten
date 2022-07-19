@@ -1,5 +1,47 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.238.1/containers/ubuntu
+
+
+//1. wget https://gmic.eu/files/linux/gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
+//
+
+// gmic depends on libbabl-0.1-0 (>= 0.1.72); however:
+//   Package libbabl-0.1-0 is not installed.
+//
+
+//  gmic depends on libfftw3-double3 (>= 3.3.5); however:
+//   Package libfftw3-double3 is not installed.
+//  gmic depends on libgegl-0.4-0 (>= 0.3.0); however:
+//   Package libgegl-0.4-0 is not installed.
+//  gmic depends on libgimp2.0 (>= 2.10.0); however:
+//   Package libgimp2.0 is not installed.
+//  gmic depends on libgomp1 (>= 4.9); however:
+//   Package libgomp1 is not installed.
+//  gmic depends on libilmbase25 (>= 2.5.7); however:
+//   Package libilmbase25 is not installed.
+//  gmic depends on libjpeg8 (>= 8c); however:
+//   Package libjpeg8 is not installed.
+//  gmic depends on libopenexr25 (>= 2.5.7); however:
+//   Package libopenexr25 is not installed.
+//  gmic depends on libpng16-16 (>= 1.6.2-1); however:
+//   Package libpng16-16 is not installed.
+//  gmic depends on libqt5core5a (>= 5.15.1); however:
+//   Package libqt5core5a is not installed.
+//  gmic depends on libqt5gui5 (>= 5.14.1) | libqt5gui5-gles (>= 5.14.1); however:
+//   Package libqt5gui5 is not installed.
+//   Package libqt5gui5-gles is not installed.
+//  gmic depends on libqt5network5 (>= 5.0.2); however:
+//   Package libqt5network5 is not installed.
+//  gmic depends on libqt5widgets5 (>= 5.11.0~rc1); however:
+//   Package libqt5widgets5 is not installed.
+//  gmic depends on libtiff5 (>= 4.0.3); however:
+//   Package libtiff5 is not installed.
+
+//sudo dpkg -i /path/to/deb/file
+//sudo apt-get install -f
+
+
+
 {
 	"name": "Ubuntu",
 	"build": {
@@ -8,6 +50,20 @@
 		// Use ubuntu-22.04 or ubuntu-18.04 on local arm64/Apple Silicon.
 		"args": { "VARIANT": "ubuntu-22.04" }
 	},
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": { 
+		},
+		"extensions": [
+			"ms-python.python",
+			"ms-python.vscode-pylance"
+		]
+	}
+},
+
+
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
