@@ -20,3 +20,6 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 # RUN sudo dpkg -i gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
 # RUN sudo apt update --fix-missing
 # RUN sudo apt-get install -f
+
+# identify docker 
+ENV DOCKER_CONTAINER Yes

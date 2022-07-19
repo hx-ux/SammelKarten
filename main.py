@@ -1,11 +1,15 @@
 import glob
 import json
 from random import randrange, random
+from unicodedata import name
 import imagehash
 from PIL import Image , ImageFont , ImageDraw
 import math
 import time
 import os
+import sys
+
+from pyparsing import line
 
 
 folderPath = {
@@ -23,7 +27,7 @@ sourceImg = "blury_tree.jpg"
 iterationScale = 1
 
 # how many images should be created ?
-countImg = 20
+countImg = 10
 
 
 # JSON log ?
@@ -38,8 +42,10 @@ drawInfoText = True
 # src.png ==> FILTERS ==> 1.png
 generateRecursive = True
 # creates a gif with all images in the selected folder
-createGif = False
-GifInputPath = folderPath["TEMP"]
+createGif = True
+
+
+
 
 
 # Filter used
@@ -72,6 +78,21 @@ filterList = [pDots, pWhearl, pBlurAngular, pRodilus, pBW, pSegment,
               pVigentte, pBWCircle, pTunnel]
 
 
+
+# def readEffectList():
+#     lines=[]
+#     sanitized=[]
+#     with open('./effect/test.txt') as f:
+#         lines = f.readlines()
+#     for i in lines:
+#        sanitized.append(i.replace("\n", ""))
+#     return sanitized
+
+# filterList=readEffectList()
+# print(filterList)
+
+# exit()
+
 def clearFolder(path):
     for file in os.listdir(path):
         if file.endswith('.png'):
@@ -100,12 +121,12 @@ def rareColor(i):
 jsonList = []
 
 
-def createGIF(path):
+def createGIF(path,gifName):
 
     print("creating gif")
     frames = [Image.open(f) for f in sorted(glob.glob(f"{path}/*.png"))]
     frame_one = Image.open(sourceImg)
-    frame_one.save(fp='./gif/render.gif', format='GIF', append_images=frames,
+    frame_one.save(fp='./gif/{n}.gif'.format(n=gifName), format='GIF', append_images=frames,
                    save_all=True, duration=200, loop=0)
     print("finished gif")
 
@@ -161,12 +182,22 @@ for images in range(countImg):
 
     try:
         img = Image.open("./temp/"+fileName).convert("RGB")
+        img = img.resize((600, 600), Image.ANTIALIAS)
         if drawInfo:
             width, height = img.size
             font_size = 20
             # TODO Does not work in docker container
+
+            
+            isdockerfile = os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', False)
+
+            fontLocation="./font/Ubuntu-M.ttf"
+            # if isdockerfile:
+            # else:
+            #     fontLocation ="usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf"
+
             font = ImageFont.truetype(
-                "usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf", font_size, encoding="unic")
+              fontLocation, font_size, encoding="unic")
 
             imgHash = imagehash.whash(img)
             fillCol = rareColor(rarity)
@@ -186,15 +217,20 @@ for images in range(countImg):
                 draw.text((40, height-60), "Filter: " +
                           str(filterCount), font=font, fill='white')
 
-        img = img.resize((600, 600), Image.NEAREST)
-        img.save("render/"+fileName, quality=100)
+        
+        try:
+            img.save("render/"+fileName, quality=100)
+        except IOError:
+            print ("cannot save  {s}".format(s=fileName))
+
         if(logToJson):
             jsonList.append({"number": images+1, "fName": fileName,
                              "iterations": rarity, "effects": filterArray, "rarity": rarity, "hash": str(imgHash)})
         countImgRender += 1
         outText = "\n succsess at image index: {img} ".format(img=str(images+1))
     except IOError:
-        outText = "\n error at image index: {img}".format(img=str(images+1))
+        tb = sys.exc_info()[2]
+        outText = "\n error at image index: {img} {tb}".format(img=str(images+1),err=tb)
     tEndSingle = time.time()
     print(outText+" elapsed time: {time} seconds".format(time=str(round(tEndSingle-tStartSingle))))
 
@@ -208,4 +244,6 @@ print("\n finished! rendered "+str(countImgRender-1) +
       " pictures in " + str(round(tEndAll-tStartAll))+" seconds")
 
 if(createGif):
-    createGIF(GifInputPath)
+    createGIF(folderPath["RENDER"],"render")
+    createGIF(folderPath["TEMP"],"temp")
+

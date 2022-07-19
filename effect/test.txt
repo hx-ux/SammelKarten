@@ -1,0 +1,8 @@
+whirls ,
+weave ,
+water ,
+warp_perspective ,
+warhol 3,3,3,40
+vignette ,
+blur 3 +unsharp_octave 4,5,15 cut 0,255
+twirl 0.6
