@@ -9,9 +9,14 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
 
 #####################POSTCOMMANDS#############
-RUN apt-get update && apt-get -y upgrade
-RUN wget https://gmic.eu/files/linux/gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
-RUN sudo dpkg -i gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
-RUN sudo apt-get install -f
-RUN sudo apt update --fix-missing
-RUN sudo apt-get install -f
+# RUN apt-get update && apt-get -y upgrade
+# RUN apt install python3-pip
+# RUN pip install requirements.txt
+
+
+
+# NOT WORKING
+# RUN wget https://gmic.eu/files/linux/gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
+# RUN sudo dpkg -i gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
+# RUN sudo apt update --fix-missing
+# RUN sudo apt-get install -f
