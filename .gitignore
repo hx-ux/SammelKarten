@@ -1,6 +1,8 @@
-test.py
+/test.py
 *.png
 *.deb
 *.gif
 font/Roboto-Black.ttf
 gif/render.gif
+test.py
+*.zip

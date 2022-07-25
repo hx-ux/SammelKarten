@@ -1,6 +1,7 @@
 import glob
 import json
 from random import randrange, random
+import shutil
 from unicodedata import name
 import imagehash
 from PIL import Image, ImageFont, ImageDraw
@@ -9,7 +10,6 @@ import time
 import os
 import sys
 
-from pyparsing import line
 
 
 folderPath = {
@@ -24,10 +24,10 @@ sourceImg = "blury_tree.jpg"
 # how many filter should be appended ?
 # your value times 5 , 2 means 5*2=10
 # the highest value in this case can be 10, the lowest 1
-iterationScale = 1
+iterationScale = 5
 
 # how many images should be created ?
-countImg = 10
+countImg = 50
 
 
 # JSON log ?
@@ -42,7 +42,9 @@ drawInfoText = True
 # src.png ==> FILTERS ==> 1.png
 generateRecursive = True
 # creates a gif with all images in the selected folder
-createGif = True
+createGif = False
+# creates a .zip folder
+createZip = True
 
 
 
@@ -79,19 +81,10 @@ filterList = [pDots, pWhearl, pBlurAngular, pRodilus, pBW, pSegment,
 
 
 
-# def readEffectList():
-#     lines=[]
-#     sanitized=[]
-#     with open('./effect/test.txt') as f:
-#         lines = f.readlines()
-#     for i in lines:
-#        sanitized.append(i.replace("\n", ""))
-#     return sanitized
+def make_archive(outname,inname):
+    shutil.make_archive(outname, 'zip', inname)
 
-# filterList=readEffectList()
-# print(filterList)
 
-# exit()
 
 def clearFolder(path):
     for file in os.listdir(path):
@@ -249,3 +242,6 @@ if(createGif):
     createGIF(folderPath["RENDER"],"render")
     createGIF(folderPath["TEMP"],"temp")
 
+if(createZip):
+    make_archive("full_temp",folderPath["TEMP"])
+    make_archive("full_render",folderPath["RENDER"])

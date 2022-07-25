@@ -14,7 +14,7 @@ more:
 
 # How to install 
 * tested with ubuntu 22.04
-
+* works on github codespaces ( ﾉ ﾟｰﾟ)ﾉ , see dockerfile
  
 1. Install dependencies
 ```bash
