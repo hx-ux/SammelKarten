@@ -13,18 +13,23 @@ more:
 
 
 # How to install 
-* tested un ubuntu 22.04
+* tested with ubuntu 22.04
 
-`
+ 
 1. Install dependencies
-
+```bash
 sudo apt-get install libfftw3-double3 libgegl-0.4-0 libgimp2.0 libilmbase25 libopenexr25 libjpeg8 libopenexr25 libpng16-16 libqt5core5a libqt5gui5 libqt5widgets5 libtiff5
+```
 
 2. Download gmic .deb
 
+```bash
 wget https://gmic.eu/files/linux/gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
-
 sudo dpkg -i gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
 sudo apt-get install -f
+```
+3. Install requirements 
 
-´
+```python
+pip install -r requirements.txt
+```

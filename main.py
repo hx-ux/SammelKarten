@@ -3,7 +3,7 @@ import json
 from random import randrange, random
 from unicodedata import name
 import imagehash
-from PIL import Image , ImageFont , ImageDraw
+from PIL import Image, ImageFont, ImageDraw
 import math
 import time
 import os
@@ -157,12 +157,13 @@ for images in range(countImg):
     rarity = math.ceil(filterCount/iterationScale)
 
     for x in range(filterCount):
-        filterArray = filterArray + str(filterList[randrange(0, len(filterList))])
+        filterArray = filterArray + \
+            str(filterList[randrange(0, len(filterList))])
 
     fileName = ''.join(str(images+1)+".png")
 
     tStartSingle = time.time()
-    
+
     imageToRender = sourceImg
 
     if(generateRecursive):
@@ -172,13 +173,12 @@ for images in range(countImg):
             if os.path.exists(prevImage):
                 imageToRender = prevImage
 
-
     print("starting image no: "+fileName +
-          " \n count filter : "+str(filterCount)+
+          " \n count filter : "+str(filterCount) +
           "\n src image" + imageToRender)
-    
+
     gmicCreate(imageToRender, fileName, filterArray)
-    countImgRender=countImgRender +1
+    countImgRender = countImgRender + 1
 
     try:
         img = Image.open("./temp/"+fileName).convert("RGB")
@@ -227,12 +227,14 @@ for images in range(countImg):
             jsonList.append({"number": images+1, "fName": fileName,
                              "iterations": rarity, "effects": filterArray, "rarity": rarity, "hash": str(imgHash)})
         countImgRender += 1
-        outText = "\n succsess at image index: {img} ".format(img=str(images+1))
+        outText = "\n succsess at image index: {img} ".format(
+            img=str(images+1))
     except IOError:
         tb = sys.exc_info()[2]
         outText = "\n error at image index: {img} {tb}".format(img=str(images+1),err=tb)
     tEndSingle = time.time()
-    print(outText+" elapsed time: {time} seconds".format(time=str(round(tEndSingle-tStartSingle))))
+    print(
+        outText+" elapsed time: {time} seconds".format(time=str(round(tEndSingle-tStartSingle))))
 
 
 if logToJson:
