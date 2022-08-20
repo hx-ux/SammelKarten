@@ -24,11 +24,13 @@ sourceImg = "blury_tree.jpg"
 # how many filter should be appended ?
 # your value times 5 , 2 means 5*2=10
 # the highest value in this case can be 10, the lowest 1
-iterationScale = 5
+iterationScale = 1
 
 # how many images should be created ?
-countImg = 50
+countImg = 10
 
+#select your effect list
+effectListName="test.txt"
 
 # JSON log ?
 logToJson = False
@@ -40,45 +42,34 @@ drawInfoText = True
 # 1.png ==> FILTERS ==> 2.png
 # if false, the src image will be rendered with filters
 # src.png ==> FILTERS ==> 1.png
-generateRecursive = True
+generateRecursive = False
 # creates a gif with all images in the selected folder
 createGif = False
 # creates a .zip folder
-createZip = True
+createZip = False
+
+
+def readFileAsList(fileName):
+    text_file = open(r"./effect/"+fileName, "r")
+    lines = text_file.readlines()
+    text_file.close()
+    sanitizedList =[]
+    for line in lines:
+        if "\n" in line:
+            sanitizedString=" "+line[:-1]
+        else:
+            sanitizedString=line
+        sanitizedList.append(sanitizedString.rjust(10))
+    return sanitizedList
 
 
 
+filterList=[]
+filterList=readFileAsList(effectListName)
 
+print(filterList)
 
-# Filter used
-pWhearl = " fx_whirls 20,3.88,0.2,1.672,11,0,50,50"
-pBlurAngular = " fx_blur_angular 0.52,50,50,3.5,1,7,0"
-pRodilus = " rodilius 10"
-pDots = " fx_polka_dots 18.1,16.28,50,50,0,0.5,0.1,1,255,255,255,255"
-pBW = " fx_blackandwhite 0.299,0,0.587,0,0.114,0,0,0,0,0,0,0,0,0,2,0,0,0,16,4,0,0,0,50,50"
-pSegment = " fx_segment_watershed 2,1,0,0,0,50,50"
-pTwirl = " fx_twirl -0.22,50,50,3"
-pDirty = " fx_dirty 30,1,0,0,0,50,50"
-pPixelSort = " fx_pixelsort 1,0,0,1,0,66.2,0,0,0"
-pOverlayBC = " frame_cube 28.98,0,0,0,0,0,0"
-pPolaRoid = " fx_polaroid 10,20,0,0,3,0,0,50,70,95"
-pHope2020 = " fx_poster_hope -0.174,3,0,50,50"
-pScanLines = " fx_marble 4.74,1,0,0,0.4,0.054,7.24,1.1,0,100"
-pSponge = " fx_sponge 9,0,0,50,50"
-pKorb = " weave 14,50.5,0,0.5,0,0,0,0,0"
-pWarp = " fx_warp_by_intensity 1.104,-0.708,128,128,0,0,3,0,0,50,50"
-pFractal = " fractalize 0.8"
-pPloy = " fx_polygonize 2000,85.7,10,10,10,0,0,0,255,0,50,50"
-pBitCrush = " fx_8bits 25,800,16,0,50,50"
-pRTiles = " fx_shift_tiles 10,10,10,1"
-pVigentte = " fx_vignette 70,70,95,0,0,0,255"
-pBWCircle = " fx_shapes 1,16,10,2,5,90,0,0,1,1,0"
-pTunnel = " fx_tunnel 4,80,50,50,0.2,0"
-
-filterList = [pDots, pWhearl, pBlurAngular, pRodilus, pBW, pSegment,
-              pTwirl, pDirty, pPixelSort, pOverlayBC, pHope2020, pScanLines, pSponge, pKorb, pBitCrush, pWarp, pFractal, pPloy, pRTiles,
-              pVigentte, pBWCircle, pTunnel]
-
+# exit()
 
 
 def make_archive(outname,inname):
