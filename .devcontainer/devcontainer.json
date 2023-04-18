@@ -1,0 +1,52 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.238.1/containers/ubuntu
+
+
+//
+
+//sudo apt-get install libfftw3-double3 libgegl-0.4-0 libgimp2.0 libilmbase25 libopenexr25 libjpeg8 libopenexr25 libpng16-16 libqt5core5a libqt5gui5 libqt5widgets5 libtiff5
+
+//1. wget https://gmic.eu/files/linux/gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
+//sudo dpkg -i gmic_3.1.4_ubuntu22-04_jammy_amd64.deb
+//sudo apt-get install -f
+
+
+
+{
+	"name": "Ubuntu",
+	"build": {
+		"dockerfile": "Dockerfile",
+		// Update 'VARIANT' to pick an Ubuntu version: jammy / ubuntu-22.04, focal / ubuntu-20.04, bionic /ubuntu-18.04
+		// Use ubuntu-22.04 or ubuntu-18.04 on local arm64/Apple Silicon.
+		"args": { "VARIANT": "ubuntu-22.04" }
+	},
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": { 
+		},
+		"extensions": [
+			"ms-python.python"
+			// // "ms-python.vscode-pylance"
+		]
+	}
+},
+
+
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	
+	"remoteUser":"root",
+	"postCreateCommand": "pip install -r requirements.txt ",
+	
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode",
+	"features": {
+		"git": "latest",
+		"python": "3.8"
+	}
+}

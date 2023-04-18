@@ -1,3 +1,8 @@
-
+/test.py
 *.png
-.vscode/settings.json
+*.deb
+*.gif
+font/Roboto-Black.ttf
+gif/render.gif
+test.py
+*.zip
